@@ -1,0 +1,8 @@
+{
+  "name": "FocusForge",
+  "short_name": "FocusForge",
+  "start_url": "/dashboard",
+  "display": "standalone",
+  "background_color": "#171717",
+  "theme_color": "#171717"
+}

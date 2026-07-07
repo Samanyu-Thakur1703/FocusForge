@@ -1,0 +1,1 @@
+export const RULE_BASED_PROTOCOL_VERSION = "v1";
