@@ -11,6 +11,7 @@ import {
   assessmentProtocolRequestSchema,
   quickProtocolRequestSchema
 } from "@/lib/validation/protocol.schema";
+import { getPostHogClient } from "@/lib/posthog-server";
 
 function formDataValue(formData: FormData, key: string) {
   const value = formData.get(key);
@@ -57,6 +58,17 @@ export async function generateAssessmentProtocolAction(
 
   const created = await protocols.createProtocolWithSession(user.id, parsed.data);
 
+  const posthog = getPostHogClient();
+  posthog.capture({
+    distinctId: user.id,
+    event: "check_in_submitted",
+    properties: {
+      session_type: parsed.data.sessionType,
+      symptom_count: parsed.data.symptomKeys.length
+    }
+  });
+  await posthog.flush();
+
   redirect(`/focus/${created.sessionId}`);
 }
 
@@ -81,6 +93,14 @@ export async function generateQuickProtocolAction(
   }
 
   const created = await protocols.createProtocolWithSession(user.id, parsed.data);
+
+  const posthog = getPostHogClient();
+  posthog.capture({
+    distinctId: user.id,
+    event: "quick_focus_started",
+    properties: { session_type: parsed.data.sessionType }
+  });
+  await posthog.flush();
 
   redirect(`/focus/${created.sessionId}`);
 }

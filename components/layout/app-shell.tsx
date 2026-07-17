@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { logoutAction } from "@/features/auth/actions";
+import { LogoutButton } from "@/components/auth/logout-button";
 import { MobileNav } from "@/components/layout/mobile-nav";
 import { SidebarNav } from "@/components/layout/sidebar-nav";
 
@@ -10,14 +10,7 @@ export function AppShell({ children }: Readonly<{ children: React.ReactNode }>) 
         <Link href="/dashboard" className="text-lg font-semibold tracking-tight">
           FocusForge
         </Link>
-        <form action={logoutAction}>
-          <button
-            type="submit"
-            className="rounded-md border border-border px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-          >
-            Logout
-          </button>
-        </form>
+        <LogoutButton />
       </header>
       <div className="flex min-h-[calc(100vh-4rem)]">
         <SidebarNav />

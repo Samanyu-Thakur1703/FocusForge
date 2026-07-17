@@ -7,6 +7,7 @@ import type { ProfileActionState } from "@/features/profile/types";
 import { ProfileRepository } from "@/lib/database/repositories/profile-repository";
 import { createClient } from "@/lib/supabase/server";
 import { profileSchema } from "@/lib/validation/profile.schema";
+import { getPostHogClient } from "@/lib/posthog-server";
 
 function formDataValue(formData: FormData, key: string) {
   const value = formData.get(key);
@@ -44,6 +45,19 @@ export async function completeOnboardingAction(
   }
 
   await profiles.completeOnboarding(user.id, parsed.data);
+
+  const posthog = getPostHogClient();
+  posthog.identify({
+    distinctId: user.id,
+    properties: { academic_level: parsed.data.academicLevel }
+  });
+  posthog.capture({
+    distinctId: user.id,
+    event: "onboarding_completed",
+    properties: { academic_level: parsed.data.academicLevel }
+  });
+  await posthog.flush();
+
   redirect("/dashboard");
 }
 
@@ -70,5 +84,17 @@ export async function updateProfileAction(
   }
 
   await profiles.updateProfile(user.id, parsed.data);
+
+  const posthog = getPostHogClient();
+  posthog.capture({
+    distinctId: user.id,
+    event: "profile_updated",
+    properties: {
+      academic_level: parsed.data.academicLevel,
+      daily_target_minutes: parsed.data.dailyTargetMinutes
+    }
+  });
+  await posthog.flush();
+
   return { ok: true, message: "Profile updated." };
 }
