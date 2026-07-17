@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
+import posthog from "posthog-js";
 import {
   abandonSessionAction,
   pauseSessionAction,
@@ -30,7 +31,12 @@ export function SessionControls({ sessionId, status }: SessionControlsProps) {
         {status === "active" ? (
           <form action={pauseAction}>
             <input type="hidden" name="sessionId" value={sessionId} />
-            <button type="submit" disabled={isPausing} className="rounded-md border px-4 py-2">
+            <button
+              type="submit"
+              disabled={isPausing}
+              onClick={() => posthog.capture("focus_session_paused", { session_id: sessionId })}
+              className="rounded-md border px-4 py-2"
+            >
               Pause
             </button>
           </form>
@@ -38,7 +44,12 @@ export function SessionControls({ sessionId, status }: SessionControlsProps) {
         {status === "paused" ? (
           <form action={resumeAction}>
             <input type="hidden" name="sessionId" value={sessionId} />
-            <button type="submit" disabled={isResuming} className="rounded-md border px-4 py-2">
+            <button
+              type="submit"
+              disabled={isResuming}
+              onClick={() => posthog.capture("focus_session_resumed", { session_id: sessionId })}
+              className="rounded-md border px-4 py-2"
+            >
               Resume
             </button>
           </form>
@@ -46,7 +57,12 @@ export function SessionControls({ sessionId, status }: SessionControlsProps) {
         {status === "active" || status === "paused" ? (
           <form action={abandonAction}>
             <input type="hidden" name="sessionId" value={sessionId} />
-            <button type="submit" disabled={isAbandoning} className="rounded-md border px-4 py-2">
+            <button
+              type="submit"
+              disabled={isAbandoning}
+              onClick={() => posthog.capture("focus_session_abandoned", { session_id: sessionId })}
+              className="rounded-md border px-4 py-2"
+            >
               Abandon
             </button>
           </form>

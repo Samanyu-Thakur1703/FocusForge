@@ -19,6 +19,7 @@ import {
   reflectionSchema,
   sessionIdSchema
 } from "@/lib/validation/session.schema";
+import { getPostHogClient } from "@/lib/posthog-server";
 
 function formDataValue(formData: FormData, key: string) {
   const value = formData.get(key);
@@ -75,6 +76,18 @@ export async function startSessionAction(formData: FormData) {
 
   try {
     const session = await sessions.createSession(user.id, parsed.data);
+
+    const posthog = getPostHogClient();
+    posthog.capture({
+      distinctId: user.id,
+      event: "focus_session_started",
+      properties: {
+        session_id: session.id,
+        session_type: parsed.data.sessionType
+      }
+    });
+    await posthog.flush();
+
     redirect(`/focus/${session.id}`);
   } catch (error) {
     if (error instanceof ProtocolOwnershipError) {
@@ -167,6 +180,19 @@ export async function completeSessionAction(
 
   try {
     await sessions.complete(user.id, parsed.data);
+
+    const posthog = getPostHogClient();
+    posthog.capture({
+      distinctId: user.id,
+      event: "focus_session_completed",
+      properties: {
+        session_id: parsed.data.sessionId,
+        focus_rating: parsed.data.focusRating,
+        goal_completed: parsed.data.goalCompleted
+      }
+    });
+    await posthog.flush();
+
     revalidatePath(`/focus/${parsed.data.sessionId}`);
     return { ok: true, message: "Session completed." };
   } catch (error) {
